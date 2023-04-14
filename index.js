@@ -7,6 +7,7 @@ const User = require("./models/User");
 const bcrypt = require("bcryptjs");
 const salt = bcrypt.genSaltSync(10);
 const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 
 mongoose.connect(process.env.DB)
 .then(() => app.listen(process.env.PORT, () => console.log("SERVER IS ONLINE")))
@@ -20,6 +21,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/register", async (req, res) => {
     const {username, password} = req.body;
@@ -51,7 +53,7 @@ app.post("/login", async (req, res) => {
             // logged in
             jwt.sign({username, id: userDoc._id}, process.env.SECRET, {}, (err, token) => {
                 if(err) throw err;
-                res.cookie("token", token).json("ok");
+                res.cookie("token", token).json({id: userDoc._id, username});
             });
      
         } else {
@@ -61,4 +63,23 @@ app.post("/login", async (req, res) => {
     } catch(err) {
         res.status(400).json(err);
     }
+});
+
+app.get("/profile", async (req, res) => {
+    const {token} = req.cookies;
+
+    if(token) {
+        // verify if the user´s token is valid 
+        jwt.verify(token, process.env.SECRET, {}, (err, info) => {
+            if(err) throw err;
+            res.json(info);
+        }); 
+    } else {
+        res.json("no token");
+    }
+
+});
+
+app.post("/logout", async (req, res) => {
+    res.cookie("token", "").json("ok");
 });
