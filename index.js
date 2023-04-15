@@ -4,10 +4,14 @@ require("dotenv").config();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const User = require("./models/User");
+const Post = require("./models/Post");
 const bcrypt = require("bcryptjs");
 const salt = bcrypt.genSaltSync(10);
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const multer = require("multer");
+const uploadMiddleware = multer({ dest: "uploads/" });
+const fs = require("fs");
 
 mongoose.connect(process.env.DB)
 .then(() => app.listen(process.env.PORT, () => console.log("SERVER IS ONLINE")))
@@ -65,6 +69,7 @@ app.post("/login", async (req, res) => {
     }
 });
 
+
 app.get("/profile", async (req, res) => {
     const {token} = req.cookies;
 
@@ -84,6 +89,20 @@ app.post("/logout", async (req, res) => {
     res.cookie("token", "").json("ok");
 });
 
-app.post("/post", async (req, res) => {
+app.post("/post", uploadMiddleware.single("file"), async (req, res) => {
+    const {originalname, path} = req.file;
+    const parts = originalname.split("."); // [filename, jpg];
+    const ext = parts[parts.length - 1]; // jpg
+    const newPath = path+"."+ext;
+    fs.renameSync(path, newPath); // uploads/realfilename.jpg
 
+    const {title, summary, content} = req.body;
+    const postDoc = await Post.create({
+        title,
+        summary,
+        content,
+        cover: newPath
+    });
+
+    res.json(postDoc);
 });
