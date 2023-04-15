@@ -12,6 +12,7 @@ const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const uploadMiddleware = multer({ dest: "uploads/" });
 const fs = require("fs");
+const path = require("path");
 
 mongoose.connect(process.env.DB)
 .then(() => app.listen(process.env.PORT, () => console.log("SERVER IS ONLINE")))
@@ -26,6 +27,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 app.post("/register", async (req, res) => {
     const {username, password} = req.body;
@@ -96,13 +99,38 @@ app.post("/post", uploadMiddleware.single("file"), async (req, res) => {
     const newPath = path+"."+ext;
     fs.renameSync(path, newPath); // uploads/realfilename.jpg
 
-    const {title, summary, content} = req.body;
-    const postDoc = await Post.create({
-        title,
-        summary,
-        content,
-        cover: newPath
-    });
+    const {token} = req.cookies;
+    if(token) {
+        // verify if the user´s token is valid 
+        jwt.verify(token, process.env.SECRET, {}, async (err, info) => {
+            if(err) throw err;
+            
+            const {title, summary, content} = req.body;
+            const postDoc = await Post.create({
+                title,
+                summary,
+                content,
+                cover: newPath,
+                author: info.id
+            });
 
-    res.json(postDoc);
+            res.json(postDoc);
+        }); 
+
+    } else {
+        res.json("no token");
+    }
+
+});
+
+app.get("/post", async (req, res) => {
+
+    try {
+        const postsDoc = await Post.find().populate("author", ["username"]).sort({createdAt: -1}).limit(20);
+        res.json(postsDoc);
+
+    } catch(err) {
+        res.status(400).json("Something went wrong");
+    }
+    
 });
