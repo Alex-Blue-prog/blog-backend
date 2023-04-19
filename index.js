@@ -130,9 +130,13 @@ app.post("/post", uploadMiddleware.single("file"), async (req, res) => {
 // show all posts
 app.get("/post", async (req, res) => {
 
+    let limit = req.query.limit || 10;
+
     try {
-        const postsDoc = await Post.find().populate("author", ["username"]).sort({createdAt: -1}).limit(20);
-        res.json(postsDoc);
+        const postsDoc = await Post.find().populate("author", ["username"]).sort({createdAt: -1}).limit(limit);
+        const postDocTotal = await Post.estimatedDocumentCount();
+
+        res.json({postsDoc, postDocTotal});
 
     } catch(err) {
         res.status(400).json("Something went wrong");
