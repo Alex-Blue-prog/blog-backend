@@ -154,17 +154,42 @@ app.get("/post/:id", async (req, res) => {
 
 // delete post
 app.delete("/post/:id", async (req, res) => {
-    const {id} = req.params;
 
     try {
-        const deletedPostDoc = await Post.findByIdAndDelete(id);
+        const {token} = req.cookies;
+        
+        if(token) {
+            // verify if the user´s token is valid 
+            jwt.verify(token, process.env.SECRET, {}, async (err, info) => {
+                if(err) throw err;
 
-        fs.unlinkSync(path.join(__dirname, deletedPostDoc.cover), (err) => {
-            if(err) throw err;
-            console.log("file deleted successfully");
-        });
+                const {id} = req.params;
 
-        res.json(deletedPostDoc);
+                const postDoc = await Post.findById(id);
+
+                const isAuthor = JSON.stringify(postDoc.author) === JSON.stringify(info.id);
+
+                if(isAuthor) {
+                    const deletedPostDoc = await Post.findByIdAndDelete(id);
+
+                    fs.unlinkSync(path.join(__dirname, deletedPostDoc.cover), (err) => {
+                        if(err) throw err;
+                        console.log("file deleted successfully");
+                    });
+
+                    res.json(deletedPostDoc);
+
+                } else {
+                    res.status(400).json("Not authorized to change this post!");
+                }
+    
+            });
+
+
+        } else {
+            res.status(400).json("no token");
+        }
+        
     } catch(err) {
         res.status(400).json("Somenthing went wrong");
     }
