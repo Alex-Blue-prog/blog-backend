@@ -1,8 +1,4 @@
 const jwt = require("jsonwebtoken");
-// const cookieParser = require("cookie-parser");
-// const express = require("express");
-// const app = express();
-// app.use(cookieParser());
 
 const verifyToken  = (req, res, next) => {
     const {token} = req.cookies;
