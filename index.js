@@ -36,6 +36,14 @@ app.post("/register", async (req, res) => {
 
     try {
 
+        if(!username || !password) {
+            return res.status(400).json("Please fill all entries.");
+        } else if(username.length < 4 || password.length < 4) {
+            return res.status(400).json("Password and username must have at least 4 characters.");
+        } else if(await User.find({username})) {
+            return res.status(400).json("Username already exists.");
+        }
+
         const UserDoc = await User.create({
             username, 
             password: bcrypt.hashSync(password, salt)
@@ -45,7 +53,7 @@ app.post("/register", async (req, res) => {
 
     } catch(err) {
         // console.log(err);
-        res.status(400).json(err);
+        res.status(400).json("Registration failed try again later.");
     }
     
 });
@@ -66,11 +74,11 @@ app.post("/login", async (req, res) => {
             });
      
         } else {
-            res.status(400).json("wrong credentials");
+            res.status(400).json("Wrong credentials");
         }
 
     } catch(err) {
-        res.status(400).json(err);
+        res.status(400).json("Login failed.");
     }
 });
 
