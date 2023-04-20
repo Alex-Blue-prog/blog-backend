@@ -78,7 +78,6 @@ app.post("/login", async (req, res) => {
 // verify user token and send user info
 app.get("/profile", verifyToken, async (req, res) => {
 
-    console.log(req.userInfo);
     res.json(req.userInfo);
 });
 
@@ -89,13 +88,21 @@ app.post("/logout", async (req, res) => {
 
 // create a new post
 app.post("/post", verifyToken, uploadMiddleware.single("file"), async (req, res) => {
-    const {originalname, path} = req.file;
+    const {title, summary, content} = req.body;
+
+    if(title == "" || summary == "" || content == "" || req.file == undefined) {
+        if(req.file) {
+            fs.unlinkSync(path.join(__dirname, req.file.path));
+        }
+        return res.status(400).json("You must fill all entries to create a post.");
+    }
+
+    const {originalname, path:pathF} = req.file;
     const parts = originalname.split("."); // [filename, jpg];
     const ext = parts[parts.length - 1]; // jpg
-    const newPath = path+"."+ext; // uploads/realfilename.jpg
-    fs.renameSync(path, newPath); //rename imgfile
+    const newPath = pathF+"."+ext; // uploads/realfilename.jpg
+    fs.renameSync(pathF, newPath); //rename imgfile
     
-    const {title, summary, content} = req.body;
     const postDoc = await Post.create({
         title,
         summary,
@@ -167,24 +174,30 @@ app.delete("/post/:id", verifyToken, async (req, res) => {
 
 // update post
 app.put("/post/:id", verifyToken, uploadMiddleware.single("file"), async (req, res) => {
-
-        let newPath = null;
-
-        if(req.file) {
-            const {originalname, path} = req.file;
-            const parts = originalname.split("."); // [filename, jpg];
-            const ext = parts[parts.length - 1]; // jpg
-            newPath = path+"."+ext;
-            fs.renameSync(path, newPath); // uploads/realfilename.jpg
-        }
-            
         const {title, summary, content} = req.body;
         const {id} = req.params;
+
+        if(title == "" || summary == "" || content == "" ) {
+            if(req.file) {
+                fs.unlinkSync(path.join(__dirname, req.file.path));
+            }
+            return res.status(400).json("You must fill all entries to update the post.");
+        }
 
         let postDoc = await Post.findById(id);
         const isAuthor = JSON.stringify(postDoc.author) === JSON.stringify(req.userInfo.id);
 
-        if(isAuthor) {
+        if(isAuthor) { 
+            let newPath = null;
+
+            if(req.file) {
+                const {originalname, path} = req.file;
+                const parts = originalname.split("."); // [filename, jpg];
+                const ext = parts[parts.length - 1]; // jpg
+                newPath = path+"."+ext;
+                fs.renameSync(path, newPath); // uploads/realfilename.jpg
+            }
+            
             await postDoc.updateOne({
                 title, 
                 summary, 
@@ -199,6 +212,9 @@ app.put("/post/:id", verifyToken, uploadMiddleware.single("file"), async (req, r
             res.json(postDoc);
 
         } else {
+            if(req.file) {
+                fs.unlinkSync(path.join(__dirname, req.file.path));
+            }
             res.status(400).json("Not authorized to change this post!");
         }
    
