@@ -21,7 +21,7 @@ const verifyToken = require("./routes/verifyToken");
 // mongoose.connect(process.env.DB)
 // .then(() => app.listen(process.env.PORT, () => console.log("SERVER IS ONLINE")))
 // .catch(err => console.log(err));
-app.listen(process.env.PORT, () => console.log("SERVER IS ONLINE"));
+app.listen(process.env.PORT || 9001, () => console.log("SERVER IS ONLINE"));
 
 const corsOptions = {
     origin: process.env.ORIGIN, 
