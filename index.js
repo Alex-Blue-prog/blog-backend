@@ -24,23 +24,24 @@ const verifyToken = require("./routes/verifyToken");
 app.listen(process.env.PORT || 9001, () => console.log("SERVER IS ONLINE"));
 
 //allow access from anywhere middleware
-app.use((req, res, next) => {
-    // res.header("Access-Control-Allow-Origin", "https://ephemeral-twilight-e390d2.netlify.app/");
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE");
-    res.setHeader("Access-Control-Allow-Credentials", true);
-    res.setHeader("Access-Control-Allow-Headers", "token, Token, Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
-    app.use(cors());
-    next();
-});
+// app.use((req, res, next) => {
+//     // res.header("Access-Control-Allow-Origin", "https://ephemeral-twilight-e390d2.netlify.app/");
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE");
+//     res.setHeader("Access-Control-Allow-Credentials", true);
+//     res.setHeader("Access-Control-Allow-Headers", "token, Token, Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
+//     app.use(cors());
+//     next();
+// });
 
 const corsOptions = {
-    origin: process.env.ORIGIN, 
+    // origin: process.env.ORIGIN, 
+    origin: "*", 
     credentials:true, //access-control-allow-credentials:true
     optionSuccessStatus:200
 }
 
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
