@@ -36,7 +36,7 @@ app.listen(process.env.PORT || 9001, () => console.log("SERVER IS ONLINE"));
 
 const corsOptions = {
     // origin: process.env.ORIGIN, 
-    origin: "https://jolly-baklava-fe11ce.netlify.app/",
+    origin: "https://jolly-baklava-fe11ce.netlify.app",
     credentials:true, //access-control-allow-credentials:true
     optionSuccessStatus:200
 }
