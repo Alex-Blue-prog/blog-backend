@@ -103,9 +103,9 @@ app.get("/profile", verifyToken, async (req, res) => {
     res.json(req.userInfo);
 });
 
-app.post("/logout", async (req, res) => {
-    res.cookie("token", "").json("ok");
-});
+// app.post("/logout", async (req, res) => {
+//     res.cookie("token", "").json("ok");
+// });
 
 
 // create a new post
