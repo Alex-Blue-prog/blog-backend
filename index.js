@@ -21,18 +21,7 @@ const verifyToken = require("./routes/verifyToken");
 // mongoose.connect(process.env.DB)
 // .then(() => app.listen(process.env.PORT, () => console.log("SERVER IS ONLINE")))
 // .catch(err => console.log(err));
-app.listen(process.env.PORT || 9001, () => console.log("SERVER IS ONLINE"));
-
-//allow access from anywhere middleware
-// app.use((req, res, next) => {
-//     // res.header("Access-Control-Allow-Origin", "https://ephemeral-twilight-e390d2.netlify.app/");
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE");
-//     res.header("Access-Control-Allow-Credentials", true);
-//     res.header("Access-Control-Allow-Headers", "token, Token, Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
-//     app.use(cors());
-//     next();
-// });
+app.listen(process.env.PORT || 5000, () => console.log("SERVER IS ONLINE"));
 
 const corsOptions = {
     // origin: process.env.ORIGIN, 
@@ -95,7 +84,8 @@ app.post("/login", async (req, res) => {
             // logged in
             jwt.sign({username, id: userDoc._id}, process.env.SECRET, {}, (err, token) => {
                 if(err) throw err;
-                res.cookie("token", token).json({id: userDoc._id, username});
+                // res.cookie("token", token).json({id: userDoc._id, username});
+                res.status(200).json({id: userDoc._id, username, token});
             });
      
         } else {
